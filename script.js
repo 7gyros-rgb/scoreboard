@@ -1,8 +1,8 @@
 const API_URL = "https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard?dates=20260611-20260719&limit=100";
 
 // Change only these two.
-const HOME_TEAM = "BEL";
-const AWAY_TEAM = "USA";
+const HOME_TEAM = "ESP";
+const AWAY_TEAM = "BEL";
 
 const POLL_INTERVAL_MS = 5000;
 const DEFAULT_FIRST_HALF_ADDED_TIME_BADGE = 1;
@@ -51,7 +51,7 @@ const DEFAULT_SHIELD_SVG =
   </svg>`);
 
 const PAGE_VERSION_URL = "/version.txt";
-const PAGE_VERSION_POLL_MS = 3000;
+const PAGE_VERSION_POLL_MS = 1000;
 let knownPageVersion = null;
 let livePollIntervalId = null;
 let pendingGoalTimeouts = [];
@@ -157,18 +157,7 @@ function getTeamKitColor(team, isHome) {
 }
 
 function applyTeamStatusDotColors(homeCompetitor, awayCompetitor) {
-  const homeDot = document.querySelector(".home-team .status-dot");
-  const awayDot = document.querySelector(".away-team .status-dot");
-
-  const homeColor = getTeamKitColor(homeCompetitor.team, true);
-  const awayColor = getTeamKitColor(awayCompetitor.team, false);
-
-  if (homeDot) {
-    homeDot.style.backgroundColor = homeColor || "#9FE2BF";
-  }
-  if (awayDot) {
-    awayDot.style.backgroundColor = awayColor || "#C1272D";
-  }
+  // Keep CSS-based status-dot colors and do not override them with inline styles.
 }
 
 /* =========================
