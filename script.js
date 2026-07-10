@@ -1,7 +1,7 @@
 const API_URL = "https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard?dates=20260611-20260719&limit=100";
 
 // Change only these two.
-const HOME_TEAM = "ESP";
+const HOME_TEAM = "USA";
 const AWAY_TEAM = "BEL";
 
 const POLL_INTERVAL_MS = 5000;
@@ -51,7 +51,7 @@ const DEFAULT_SHIELD_SVG =
   </svg>`);
 
 const PAGE_VERSION_URL = "/version.txt";
-const PAGE_VERSION_POLL_MS = 10000;
+const PAGE_VERSION_POLL_MS = 3000;
 let knownPageVersion = null;
 let livePollIntervalId = null;
 let pendingGoalTimeouts = [];
