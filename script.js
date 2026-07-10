@@ -39,6 +39,10 @@ const DEFAULT_AVATAR_SVG =
     <path d="M20 82c0-14 12-23 30-23s30 9 30 23z" fill="#8a3ffc"/>
   </svg>`);
 
+const VERSION_CHECK_INTERVAL_MS = 10000;
+const VERSION_FILE_URL = "/version.txt";
+let knownVersion = null;
+
 const DEFAULT_SHIELD_SVG =
   "data:image/svg+xml;utf8," +
   encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
@@ -46,6 +50,9 @@ const DEFAULT_SHIELD_SVG =
     <circle cx="50" cy="48" r="16" fill="#00f0c5"/>
   </svg>`);
 
+const PAGE_VERSION_URL = "/version.txt";
+const PAGE_VERSION_POLL_MS = 10000;
+let knownPageVersion = null;
 let livePollIntervalId = null;
 let pendingGoalTimeouts = [];
 let matchTimer = null;
@@ -1071,7 +1078,36 @@ document.addEventListener("DOMContentLoaded", () => {
     fetchMatchData();
     livePollIntervalId = setInterval(fetchMatchData, POLL_INTERVAL_MS);
   }
+
+  startPageVersionPolling();
 });
+
+async function checkPageVersion() {
+  try {
+    const response = await fetch(PAGE_VERSION_URL, { cache: "no-store" });
+    if (!response.ok) return;
+
+    const currentVersion = (await response.text()).trim();
+    if (!currentVersion) return;
+
+    if (knownPageVersion === null) {
+      knownPageVersion = currentVersion;
+      return;
+    }
+
+    if (currentVersion !== knownPageVersion) {
+      knownPageVersion = currentVersion;
+      location.reload();
+    }
+  } catch (error) {
+    console.warn("[scoreboard] page version check failed", error);
+  }
+}
+
+function startPageVersionPolling() {
+  checkPageVersion();
+  setInterval(checkPageVersion, PAGE_VERSION_POLL_MS);
+}
 
 /* =========================
    MAIN FETCH LOOP
