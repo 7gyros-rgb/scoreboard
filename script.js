@@ -1,8 +1,8 @@
 const API_URL = "https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard?dates=20260611-20260719&limit=100";
 
 // Change only these two.
-const HOME_TEAM = "BEL";
-const AWAY_TEAM = "USA";
+const HOME_TEAM = "ESP";
+const AWAY_TEAM = "BEL";
 
 const POLL_INTERVAL_MS = 5000;
 const DEFAULT_FIRST_HALF_ADDED_TIME_BADGE = 1;
@@ -1084,7 +1084,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
 async function checkPageVersion() {
   try {
-    const response = await fetch(PAGE_VERSION_URL, { cache: "no-store" });
+    const cacheBuster = Date.now();
+    const response = await fetch(`${PAGE_VERSION_URL}?cb=${cacheBuster}`, { cache: "no-store" });
     if (!response.ok) return;
 
     const currentVersion = (await response.text()).trim();
