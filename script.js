@@ -133,6 +133,44 @@ function buildScorerImageCandidates({ athleteId, espnHeadshot, scorerName, teamA
   return [...new Set(candidates.filter(Boolean))];
 }
 
+function cleanHexColor(value) {
+  if (!value) return null;
+  const raw = String(value).trim();
+  const normalized = raw.replace(/^#+/, "");
+  if (/^[0-9a-fA-F]{6}$/.test(normalized)) {
+    return `#${normalized.toUpperCase()}`;
+  }
+  if (/^[0-9a-fA-F]{3}$/.test(normalized)) {
+    return `#${normalized.split("").map(c => c + c).join("")}`;
+  }
+  return null;
+}
+
+function getTeamKitColor(team, isHome) {
+  if (!team || typeof team !== "object") return null;
+  const primary = cleanHexColor(team.color || team.primaryColor || team.teamColor || team.backgroundColor);
+  const alternate = cleanHexColor(team.alternateColor || team.secondaryColor || team.secondaryColour);
+  if (isHome) {
+    return primary || alternate || null;
+  }
+  return alternate || primary || null;
+}
+
+function applyTeamStatusDotColors(homeCompetitor, awayCompetitor) {
+  const homeDot = document.querySelector(".home-team .status-dot");
+  const awayDot = document.querySelector(".away-team .status-dot");
+
+  const homeColor = getTeamKitColor(homeCompetitor.team, true);
+  const awayColor = getTeamKitColor(awayCompetitor.team, false);
+
+  if (homeDot) {
+    homeDot.style.backgroundColor = homeColor || "#9FE2BF";
+  }
+  if (awayDot) {
+    awayDot.style.backgroundColor = awayColor || "#C1272D";
+  }
+}
+
 /* =========================
    TIMER
 ========================= */
@@ -1138,6 +1176,7 @@ async function fetchMatchData() {
 
     setText(".home-team .team-name", HOME_TEAM);
     setText(".away-team .team-name", AWAY_TEAM);
+    applyTeamStatusDotColors(homeCompetitor, awayCompetitor);
 
     const scoreResult = goalEventManager.updateFromCompetition({
       homeCompetitor,
