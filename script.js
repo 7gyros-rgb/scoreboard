@@ -1,8 +1,8 @@
 const API_URL = "https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard?dates=20260611-20260719&limit=100";
 
 // Change only these two.
-const HOME_TEAM = "ESP";
-const AWAY_TEAM = "BEL";
+const HOME_TEAM = "NOR";
+const AWAY_TEAM = "ENG";
 
 const POLL_INTERVAL_MS = 5000;
 const DEFAULT_FIRST_HALF_ADDED_TIME_BADGE = 1;
@@ -428,8 +428,21 @@ class MatchTimer {
   }
 
   findOfficialAddedTime(competition, period) {
-    const details = competition?.details || [];
     const baseMinute = this.getPeriodBaseMinute(period);
+
+    // FIRST: Check status.displayClock (primary source from ESPN API)
+    // Format examples: "45'+5'", "90'+8'", "105'+3'"
+    const statusClock = competition?.status?.displayClock || "";
+    const baseMinuteStr = String(baseMinute);
+    if (statusClock.includes(baseMinuteStr)) {
+      const plusMatch = statusClock.match(/\+(\d+)/);
+      if (plusMatch) {
+        return Number(plusMatch[1]);
+      }
+    }
+
+    // FALLBACK: Check details array (legacy/additional info)
+    const details = competition?.details || [];
 
     for (let i = details.length - 1; i >= 0; i--) {
       const detail = details[i];
@@ -703,17 +716,39 @@ class GoalEventManager {
       if (!isGoal) return;
 
       const teamAbbr = normalizeTeamCode(item?.team?.abbreviation || item?.team?.abbrev || "");
-      const athlete = item?.athletesInvolved?.[0] || item?.participants?.[0]?.athlete || item?.athlete;
+      if (!teamAbbr) return;
 
-      if (!teamAbbr || !athlete) return;
+      // Extract athlete from multiple possible locations
+      const athlete = 
+        item?.athletesInvolved?.[0] || 
+        item?.participants?.[0]?.athlete || 
+        item?.athlete ||
+        item?.scoringPlayer;
+
+      // Try multiple name fields
+      let scorerName = null;
+      if (athlete) {
+        scorerName = 
+          athlete.displayName || 
+          athlete.fullName || 
+          athlete.shortName ||
+          athlete.name ||
+          athlete.firstName && athlete.lastName ? `${athlete.firstName} ${athlete.lastName}` : null;
+      }
+
+      // Also check if the goal description contains a player name
+      if (!scorerName && item?.description) {
+        const descMatch = item.description.match(/^([A-Z][a-z]+ [A-Z][a-z]+)/);
+        if (descMatch) scorerName = descMatch[1];
+      }
 
       events.push({
         source,
         teamAbbr,
         sequence: Number(item?.sequenceNumber || item?.sequence || item?.id || index),
         scorer: {
-          name: athlete.displayName || athlete.fullName || athlete.shortName || null,
-          id: athlete.id || null,
+          name: scorerName,
+          id: athlete?.id || null,
           headshot: athlete?.headshot?.href || athlete?.headshot || null
         }
       });
@@ -722,7 +757,7 @@ class GoalEventManager {
     (competition?.details || []).forEach((item, index) => push(item, index, "details"));
     (competition?.scoringPlays || []).forEach((item, index) => push(item, index + 10000, "scoringPlays"));
 
-    return events.filter(event => event.scorer.name);
+    return events;
   }
 }
 
