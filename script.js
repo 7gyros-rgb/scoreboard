@@ -601,8 +601,12 @@ class GoalEventManager {
       return { accepted: true, initialized: true };
     }
 
-    if (homeScore < this.highWaterHomeScore || awayScore < this.highWaterAwayScore) {
-      return { accepted: false };
+    const homeRolledBack = this.lastHomeScore !== null && homeScore < this.lastHomeScore;
+    const awayRolledBack = this.lastAwayScore !== null && awayScore < this.lastAwayScore;
+
+    if (homeRolledBack || awayRolledBack) {
+      this.commitScores(homeScore, awayScore);
+      return { accepted: true, rollback: true };
     }
 
     if (homeScore > this.lastHomeScore) {
@@ -1041,23 +1045,6 @@ function spawnScoreBurst(scoreBoxId) {
   }
 }
 
-function triggerManualTestGoal() {
-  const isHome = Math.random() > 0.5;
-  const teamAbbr = isHome ? ESPN_HOME_TEAM : ESPN_AWAY_TEAM;
-  const teamName = isHome ? "HOME TEAM" : "AWAY TEAM";
-  const scorerName = "TEST SCORER";
-  const scoreBoxId = isHome ? "home-score" : "away-score";
-
-  const imageCandidates = buildScorerImageCandidates({
-    athleteId: null,
-    espnHeadshot: null,
-    scorerName,
-    teamAbbr
-  });
-
-  spawnScoreBurst(scoreBoxId);
-  triggerGoalAlert(teamAbbr, teamName, scorerName, imageCandidates[0], imageCandidates.slice(1));
-}
 
 /* =========================
    MATCH HELPERS
@@ -1133,8 +1120,6 @@ document.addEventListener("DOMContentLoaded", () => {
     awayTeam: ESPN_AWAY_TEAM
   });
 
-  const trophy = document.querySelector(".trophy-badge");
-  if (trophy) trophy.addEventListener("dblclick", triggerManualTestGoal);
 
   if (!window.__WC_DEMO_MODE__) {
     fetchMatchData();
