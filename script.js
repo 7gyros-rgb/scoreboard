@@ -1145,7 +1145,12 @@ async function checkPageVersion() {
 
     if (currentVersion !== knownPageVersion) {
       knownPageVersion = currentVersion;
-      location.reload();
+      
+      // Force a hard reload in stubborn browsers (like Streamlabs CEF) 
+      // by appending a unique timestamp to the URL.
+      const newUrl = new URL(window.location.href);
+      newUrl.searchParams.set('reload', Date.now());
+      window.location.replace(newUrl.toString());
     }
   } catch (error) {
     console.warn("[scoreboard] page version check failed", error);
