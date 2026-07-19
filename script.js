@@ -1,8 +1,8 @@
 const API_URL = "https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard?dates=20260611-20260719&limit=200";
 
 // Change only these two.
-const HOME_TEAM = "FRA";
-const AWAY_TEAM = "ENG";
+const HOME_TEAM = "ESP";
+const AWAY_TEAM = "ARG";
 
 const POLL_INTERVAL_MS = 5000;
 const DEFAULT_FIRST_HALF_ADDED_TIME_BADGE = 1;
